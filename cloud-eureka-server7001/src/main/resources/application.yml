@@ -1,0 +1,22 @@
+server:
+  port: 7001
+eureka:
+  instance:
+    hostname: eureka7001.com #eureka服务端的实例名称
+  client:
+    #false表示不向注册中心注册自己
+    register-with-eureka: false
+    #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务(是否从EurekaServer抓取已有的注册信息)
+    fetch-registry: false
+    service-url:
+      # 设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址
+      # defaultZone: http://eureka7002.com:7002/eureka/
+      # 单机就是自己
+      defaultZone: http://eureka7001.com:7001/eureka/
+  # server:
+    #关闭自我保护模式
+    # enable-self-preservation: false
+    #eureka自我保护模式：EurekaServer默认90秒内没有收到心跳机制，原则上将会被清理，开启自我保护模式将不会立刻被清理，依旧会对微服务的信息进行保存。CAP中的AP分支
+    #CAP原则又称CAP定理，指的是在一个分布式系统中，一致性（Consistency）、可用性（Availability）、分区容错性（Partition tolerance）。CAP 原则指的是，这三个要素最多只能同时实现两点，不可能三者兼顾。
+    #心跳时间2s
+    # eviction-interval-timer-in-ms: 2000
