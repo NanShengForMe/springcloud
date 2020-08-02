@@ -11,6 +11,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * PaymentController
@@ -74,5 +75,22 @@ public class PaymentController {
         return serverPort;
     }
 
+
+    /**
+     * Description: 模拟长流程处理（测试OpenFeign超时设置）
+     * @return java.lang.String
+     * @author ZouJiDi
+     * @date 2020/8/2 3:59 下午
+     */
+    @GetMapping("/payment/feign/timeout")
+    public String paymentFeignTimeout() {
+        // 暂停几秒钟线程
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return serverPort;
+    }
 
 }
