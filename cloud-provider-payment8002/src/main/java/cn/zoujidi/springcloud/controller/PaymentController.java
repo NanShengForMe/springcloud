@@ -45,5 +45,9 @@ public class PaymentController {
         return CommonResult.builder().code(444).message("没有对应记录，查询id：" + id).build();
     }
 
+    @GetMapping("/payment/lb")
+    public String getPaymentLB(){
+        return serverPort;
+    }
 
 }
