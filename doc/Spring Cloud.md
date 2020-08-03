@@ -319,3 +319,7 @@ public class PaymentFallbackService implements PaymentHystrixService {
 ### 服务限流
 
 与alibaba的Sentinel联动看。
+
+### Hystrix工作流程
+
+![img](https://img2018.cnblogs.com/blog/1102969/201908/1102969-20190817194233549-1075974382.png)
