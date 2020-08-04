@@ -354,11 +354,13 @@ Zuul核心人员跳槽，已经停更，Zuul2迟迟发不出，spring的Gateway�
 ### GateWay概述
 
 ```
-	Cloud全家桶重要的组件就是网关。在1.x的版本都是采用Zuul网关，但是在2.x的版本中zuul的升级一直跳票，SpringCloud最后自己研发了一个网关替代Zuul，那就是SpringCloud gateway一句话：gateway是原Zuul1.x的替代品。
+Cloud全家桶重要的组件就是网关。在1.x的版本都是采用Zuul网关，但是在2.x的版本中zuul的升级一直跳票，SpringCloud最后自己研发了一个网关替代Zuul，那就是SpringCloud gateway一句话：gateway是原Zuul1.x的替代品。
 
 是基于Spring5.0+Springboot2.0和Project Reactor等技术开发的网关，旨在为微服务架构提供一种简单有效的统一的API路由管理方式。
 
 为了提升网关的性能，SpringCloud Gateway是基于WebFlux框架实现的，而WebFlux框架底层则使用了高性能的Reactor模式通信框架Netty。
+
+基于异步非阻塞模型。
 
 SpringCloud Gateway的目标是提供统一的路由方式且基于Filter链的方式提供了网关基本的功能，例如：安全，监控/指标和限流。
 
@@ -368,3 +370,35 @@ SpringCloud Gateway的目标是提供统一的路由方式且基于Filter链的�
 ### 能干嘛
 
 方向代理、鉴权、流量控制、熔断、日志监控.....
+
+### Zuul与Gateway
+
+在Spring Cloud F正式版本之前，Spring Cloud推荐的网关Netflix提供的Zuul：
+
+1. Zuul1.x，是一个基于阻塞I/O的API Gateway
+2. Zuul1.x基于Servlet2.5使用阻塞框架它不支持任何长连接（如WebSocket）Zuul的设计模式和Nginx教像，每次IO操作都是从工作线程中选择一个执行，请求线程被阻塞到工作线程完成，但是差别是Nginx用C++实现，Zuul用Java实现，而JVM本身会有第一次加载较慢的情况，是的Zuul的性能相对较差。
+3. Zuul2.x理念更先进，相基于Netty非阻塞和支持长连接，但Spring Cloud目前还没有整合。Zuul2.x的性能较Zuul1.x有较大提升。在性能方面，根据官方提供的基准进行测试，Spring Cloud Gateway的RPS（每秒请求数）是Zuul的1.6倍。
+4. Spring Cloud Gateway建立在SpringFramework5、Project Reactor和Spring Boot2.0之上，使用非阻塞API。
+5. Spring Cloud Gateway还支持WebSocket，并且与Spring紧密集成用友更好的开发体验。
+
+### WebFlux
+
+```
+传统的Web框架，比如说：struts2，springMVC都是基于ServletApi与servlet容器基础之上运行了。但是在servlet3.1之后有了异步非阻塞的支持。而WebFlux是一个典型的非阻塞异步框架，它的核心是基于Reactor的相关API实现的。相对于创痛的web框架来说，他可以运行在诸如Netty，Undertow及支持Servlet3.1的容器上。非阻塞+函数式编程（Spring5必须强制让你使用java8）。
+
+Spring WebFlux是Spring5.0引入的新的响应式框架，区别于SpringMVC，他不需要依赖ServletAPI，它是完全异步非阻塞的，并且基于Reactor来实现响应式流规范。
+```
+
+### Gateway三大组件
+
+- Route（路由）：是构建网关的基本模块，他由ID，目标URI，一系列断言和过滤器组成，如果断言为true则匹配该路由。
+- Predicate（断言）：（参考Java8的java.util.function.Predicate）开发人员可以匹配HTTP请求中的所有内容（例如请求头或请求参数），**如果请求与断言相匹配则进行路由**。
+- Filter（过滤器）：指的是Spring框架中GatewayFilter的实例，使用过滤器，可以在请求被路由前或者之后对请求进行修改。
+
+总结：web请求，通过一些匹配条件，定位到真正的的服务节点。并在这个转发过程的前后，进行一些精细化控制。Predicate就是匹配条件，而filter，就可以理解为一个无所不能的拦截器。有了这两个元素，再加上URI，就可以实现具体的路由。
+
+Pre类型过滤器可以做参数校验、权限校验、流量监控、日志输出、协议转换等；
+
+Post类型过滤器可以做响应内容、响应头的修改，日志的输出，流量监控等有着非常重要的作用。
+
+**<u>核心逻辑即：路由转发+执行过滤链</u>**
