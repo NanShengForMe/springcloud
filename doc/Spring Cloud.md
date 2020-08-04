@@ -481,3 +481,78 @@ spring:
           enabled: true
 ```
 
+### 常用Predicate
+
+```
+时区类：After、Before、Between
+- After=2020-08-04T17:28:49.332+08:00[Asia/Shanghai]
+
+Cookie类
+带cookie访问.Cookie Route Predicate需要两个参数，一个是Cookie name，一个是正则表达式。路由规则会通过获取对应的Cookie name值和正则表达式去匹配，如果匹配上就会执行路由，如果没有匹配上则不执行 
+- Cookie=chocolate,ch.p
+使用curl测试：curl http://localhost:9527/payment/7 --cookie "username=zoujidi"
+
+Head类：属性=正则表达式进行匹配
+- Header=X-Request-Id, \d+ #要求请求头要有X-Request-Id属性并且值为整数的正则表达式
+使用curl测试：curl http://localhost:9527/payment/7 -H "X-Request-Id:123"
+
+Host
+Method
+Path
+Query:查询参数、条件
+...
+```
+
+### 过滤器
+
+常用的GatewayFilter31种+Global Filter10种
+
+```yml
+spring:
+  application:
+    name: cloud-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: payment_routh #路由的id，没有固定规则但要求唯一，建议配合服务名
+          # uri: http://localhost:8001 #匹配后提供服务的路由地址
+          uri: lb://cloud-payment-service #匹配后提供服务的路由地址
+          predicates:
+            - Path=/payment/**  #断言，路径相匹配的进行路由
+            # - After=2020-08-04T16:28:49.332+08:00[Asia/Shanghai]
+            # - Cookie=username,zoujidi
+            - Header=X-Request-Id, \d+ #要求请求头要有X-Request-Id属性并且值为整数的正则表达式
+          filter:
+            - AddRequestParameter=X-Request-Id,1024 #过滤器工厂会在匹配的请求头上加一对请求头，名称为X-Request-Id值为1024
+```
+
+### 自定义过滤器
+
+两个接口GlobalFilter，Ordered
+
+主要用于全局日志、统一网关鉴权...
+
+```java
+@Component
+@Slf4j
+public class MyLogGatewayFilter implements GlobalFilter, Ordered {
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        log.info("=================com in MyLogGatewayFilter:" + new Date());
+        String uname = exchange.getRequest().getQueryParams().getFirst("uname");
+        if (uname == null) {
+            log.info("============用户名为null，非法用户=============");
+            exchange.getResponse().setStatusCode(HttpStatus.NOT_ACCEPTABLE);
+            return exchange.getResponse().setComplete();
+        }
+        return chain.filter(exchange);
+    }
+
+    @Override
+    public int getOrder() {
+        // 过滤器优先级，数字越小优先级越高
+        return 0;
+    }
+}
+```
