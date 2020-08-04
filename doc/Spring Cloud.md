@@ -323,3 +323,48 @@ public class PaymentFallbackService implements PaymentHystrixService {
 ### Hystrix工作流程
 
 ![img](https://img2018.cnblogs.com/blog/1102969/201908/1102969-20190817194233549-1075974382.png)
+
+### DashBoard监控
+
+小心踩坑：被监控者必须要actuator功能
+
+低版本坑：
+
+```java
+/**
+ * 此配置是为了服务监控而配置，与服务容错本身无关，springcloud升级后的坑
+ * ServletRegistrationBean因为springboot的默认路径不是/hystrix.stream
+ * 只要在自己的项目里配置上下面的servlet就可以
+ */
+@Bean
+public ServletRegistrationBean getServlet() {
+    HystrixMetricsStreamServlet streamServlet = new HystrixMetricsStreamServlet();
+    ServletRegistrationBean registrationBean = new ServletRegistrationBean(streamServlet);
+    registrationBean.setLoadOnStartup(1);
+    registrationBean.addUrlMappings("/hystrix.stream");
+    registrationBean.setName("HystrixMetricsStreamServlet");
+    return registrationBean;
+}
+```
+
+## 服务网关
+
+Zuul核心人员跳槽，已经停更，Zuul2迟迟发不出，spring的Gateway开始使用。
+
+### GateWay概述
+
+```
+	Cloud全家桶重要的组件就是网关。在1.x的版本都是采用Zuul网关，但是在2.x的版本中zuul的升级一直跳票，SpringCloud最后自己研发了一个网关替代Zuul，那就是SpringCloud gateway一句话：gateway是原Zuul1.x的替代品。
+
+是基于Spring5.0+Springboot2.0和Project Reactor等技术开发的网关，旨在为微服务架构提供一种简单有效的统一的API路由管理方式。
+
+为了提升网关的性能，SpringCloud Gateway是基于WebFlux框架实现的，而WebFlux框架底层则使用了高性能的Reactor模式通信框架Netty。
+
+SpringCloud Gateway的目标是提供统一的路由方式且基于Filter链的方式提供了网关基本的功能，例如：安全，监控/指标和限流。
+
+一句话：SpringCloud Gateway使用的是WebFlux中的reactor-netty响应式编程组件，底层使用了Netty通讯框架。
+```
+
+### 能干嘛
+
+方向代理、鉴权、流量控制、熔断、日志监控.....

@@ -6,7 +6,6 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -62,7 +61,7 @@ public class PaymentService {
     @HystrixCommand(fallbackMethod = "paymentCircuitBreaker_fallback", commandProperties = {
             // 是否开启断路器
             @HystrixProperty(name = "circuitBreaker.enabled", value = "true"),
-            // 请求次数
+            // 请求次数，，请求次数超过峰值，熔断器将会将会从关闭变为打开
             @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "10"),
             // 时间窗口期
             @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "10000"),
