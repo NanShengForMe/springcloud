@@ -594,3 +594,33 @@ Label：分支（branch）
 name：服务名
 
 profiles：环境（dev/test/prod）
+
+### Bootstrap.yml
+
+application.yml是用户级的资源配置项
+
+Bootstrap.yml是系统级的，优先级更加高
+
+SpringCloud会创建一个“Bootstrap Context”，作为Spring应用的Application Context的父上下文。初始化的时候，Bootstrap Context负责从外部源加载配置属性并解析配置。这两个上下文共享一个从外部获取的Environment。
+
+Bootstrap属性有高优先级，默认情况下，它们不会被本地覆盖。Bootstrap context和Application Context有着不同的约定，所以增加了一个bootstrap.yml文件，保证Bootstrap Context和Application Context配置的分离。
+
+要将Client模块下的application.yml文件改为bootstrap.yml，这是很关键的，因为bootstrap.yml是比application.yml先加载的。bootstrap.yml优先级高于application.yml.
+
+双亲委派模型？
+
+### config客户端之动态刷新
+
+步骤：
+
+1. config客户端添加actuator依赖
+2. 修改yml，暴露监控端点
+3. @RefreshScope业务类Controller修改
+4. 此时修改github-->3344(配置中心)-->3355客户端
+5. 需要运维人员发送Post请求刷新3355：必须是post请求， curl -X POST "http://localhost:3355/actuator/refresh"
+6. 改完之后发送请求刷新即可，无需重启
+
+观察者模式？
+
+出现问题：假设有点多个客户端（3355、3366、3377...）？每个微服务都要执行一次post请求，手动刷新？可否广播，一次通知，处处生效？想大范围的自动刷新，求方法？引出下一章
+
