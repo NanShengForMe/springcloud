@@ -830,3 +830,14 @@ RabbitMQ
 
 还可解决持久化(消息丢失问题).
 
+## Spring Cloud Sleuth
+
+### 是什么
+
+Spring Cloud Sleuth提供了一套完整的服务跟踪解决方案.在分布式系统中提供追踪解决方案并且兼容支持了zipkin
+
+zipkin:
+
+http://localhost:9411/zipkin/
+
+术语: 一条链路通过Trace Id唯一标识,Span标识发起的请求信息,各span通过parent_id关联起来 

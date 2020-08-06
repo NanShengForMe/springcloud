@@ -79,4 +79,11 @@ public class OrderController {
         return restTemplate.getForObject(uri + "/payment/lb", String.class);
     }
 
+    // ======================zipkin=============
+
+    @GetMapping(value = "/consumer/payment/zipkin", produces = {"application/json;charset=UTF-8"})
+    public String paymentZipkin() {
+        return restTemplate.getForObject(PAYMENT_URL + "/payment/zipkin", String.class);
+    }
+
 }

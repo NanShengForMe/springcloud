@@ -93,4 +93,11 @@ public class PaymentController {
         return serverPort;
     }
 
+    // ====================sleuth+zipkin======================
+
+    @GetMapping("/payment/zipkin")
+    public String paymentZipkin() {
+        return "zipkin";
+    }
+
 }
