@@ -841,3 +841,57 @@ zipkin:
 http://localhost:9411/zipkin/
 
 术语: 一条链路通过Trace Id唯一标识,Span标识发起的请求信息,各span通过parent_id关联起来 
+
+## Spring Cloud Alibaba
+
+随着SpringCloud Netflix项目进入维护模式,出现了SpringCloud Alibaba
+
+阿里巴巴的Dubbo停更后出现了SpringCloud(Netflix):Eureka、Ribbon、Feign、Config、Zuul=======》2018年
+
+Netflix停更后=====〉SpringCloud Alibaba出现了 
+
+### 能干嘛
+
+- **服务限流降级**：默认支持 WebServlet、WebFlux, OpenFeign、RestTemplate、Spring Cloud Gateway, Zuul, Dubbo 和 RocketMQ 限流降级功能的接入，可以在运行时通过控制台实时修改限流降级规则，还支持查看限流降级 Metrics 监控。
+- **服务注册与发现**：适配 Spring Cloud 服务注册与发现标准，默认集成了 Ribbon 的支持。
+- **分布式配置管理**：支持分布式系统中的外部化配置，配置更改时自动刷新。
+- **消息驱动能力**：基于 Spring Cloud Stream 为微服务应用构建消息驱动能力。
+- **分布式事务**：使用 @GlobalTransactional 注解， 高效并且对业务零侵入地解决分布式事务问题。。
+- **阿里云对象存储**：阿里云提供的海量、安全、低成本、高可靠的云存储服务。支持在任何应用、任何时间、任何地点存储和访问任意类型的数据。
+- **分布式任务调度**：提供秒级、精准、高可靠、高可用的定时（基于 Cron 表达式）任务调度服务。同时提供分布式的任务执行模型，如网格任务。网格任务支持海量子任务均匀分配到所有 Worker（schedulerx-client）上执行。
+- **阿里云短信服务**：覆盖全球的短信服务，友好、高效、智能的互联化通讯能力，帮助企业迅速搭建客户触达通道。
+
+## Spring Cloud Nacos
+
+前四个字母为nameing和Configuration的前两个字母,最后的s为Service.
+
+就是注册中心+配置的组合.等价于Nacos=Eureka+Config+Bus
+
+AP框架:舍弃一致性,保证高可用.
+
+### 能干嘛
+
+替代Eureka做注册中心
+
+替代Config做配置中心
+
+### 实例
+
+```yml
+server:
+  port: 9001
+
+spring:
+  application:
+    name: nacos-payment-provider
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.0:8848 #配置注册中心
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+```
