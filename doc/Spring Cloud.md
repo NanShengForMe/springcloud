@@ -895,3 +895,23 @@ management:
       exposure:
         include: *
 ```
+
+### 各注册中心的对比
+
+Nacos同时支持CP和AP模式的切换.
+
+C时所有节点在同一时间看到的数据都是一致的;而A的定义是所有的请求都会收到响应.
+
+合适选用何种模式?
+
+一般来说,如果不需要存储服务级别的信息且服务实例是通过nacos-client注册,并能够保持心跳上报,那么就可以选择AP模式.当前主流的服务如Spring Cloud 和 Dubbo服务都适用于AP模式,AP模式为了服务的可能性而减低了一致性,因此AP模式下只支持注册临时实例.
+
+如果需要在服务级别编辑或者存储配置信息,那么CP是必须的,k8s服务和DNS服务则属于CP模式.CP模式下则支持注册持久化实例,此时则是以Raft协议为集群运行模式,该模式下注册实例前必须先注册服务,如果服务不存在,则返回错误.
+
+### 作为配置中心
+
+bootstrap优先级高于application
+
+通过Spring Cloud原生注解@RefreshScope实现配置自动更新
+
+在nacos中添加配置信息:Nacos中的匹配规则:Nacos中的dataid的组成格式及与SpringBoot配置文件中的规则:${prefix}-${spring.profile.active}.${file-extension}
