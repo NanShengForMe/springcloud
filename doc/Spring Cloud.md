@@ -915,3 +915,14 @@ bootstrap优先级高于application
 通过Spring Cloud原生注解@RefreshScope实现配置自动更新
 
 在nacos中添加配置信息:Nacos中的匹配规则:Nacos中的dataid的组成格式及与SpringBoot配置文件中的规则:${prefix}-${spring.profile.active}.${file-extension}
+
+### 作分类配置
+
+实际问题:多环境(profile)、多项目
+
+Namespace+Group+DataID:类似Java里面的package名和类名
+
+最外层的Namespace是可以用于区分部署环境的,Group和DataID逻辑上区分两个目标对象.
+
+默认情况:Namespace=public,Group=DEFAULT_GROUP,默认Cluster是DEFAULT
+
