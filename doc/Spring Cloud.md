@@ -926,3 +926,190 @@ Namespace+Group+DataID:类似Java里面的package名和类名
 
 默认情况:Namespace=public,Group=DEFAULT_GROUP,默认Cluster是DEFAULT
 
+### Nacos的集群配置的持久化配置(重要)
+
+nacos默认使用嵌入式的数据库实现数据的存储.所以,如果启动多个默认配置下的Nacos节点,数据存储是会存在一致性问题的.为了解决这个问题,Nacos采用的**<u>集中式存储的方式来支持集群化部署,目前只支持MySQL的存储</u>**.
+
+Nacos支持 的三种部署方式:
+
+- 单机模式-用于测试和单机使用
+- 集群模式-用于生产环境,确保高可用.
+- 多集群模式-用于多数据中心场景
+
+nacos默认自带的是嵌入式的数据库derby,切换为mysql
+
+预计需要1个nginx+3个nacos+1个mysql
+
+#### 集群配置步骤
+
+修改nacos脚本,启动时候 startup -p 3333?
+
+## Sentinel
+
+Hystrix:
+
+- 需要我们程序员自己搭建监控平台
+- 没有一套web界面给我们进行更加细粒度化的配置流量控制、速率控制、服务熔断、服务降级。。。。
+
+Sentinel
+
+- 单独一个组件，可以独立出来
+- 支持界面化的细粒度统一配置
+
+约定》配置》编码，都可以写在代码里面，但是我们本次还是大规模的学习使用配置和注解的方式，尽量少些代码
+
+解决？
+
+- 服务雪崩
+- 服务降级
+- 服务熔断
+- 服务限流
+
+### 流控模式
+
+直接：
+
+​	QPS，直接调用默认报出错误。
+
+​	线程数？请求进入程序之后，防止线程占用过多
+
+关联：B惹事，A挂了
+
+链路：
+
+### 流量效果
+
+ 快速失败、Warm Up、排队等待
+
+预热：根据codeFactor（冷加载因子默认值3），从阈值/codeFactor，经过预热时长，才达到设置的QPS值（防止突然来的高流量把系统打死）
+
+排队等待：匀速排队，让请求以均匀的速度通过，阈值类型必须为QPS，否则失效（排队匀速通过，设置超时时间）（漏桶算法）。这种方式主要用于处理间隔性突发的流量，例如消息队列，这样的场景在某一秒有大量的请求，下一秒又没有了
+
+### 降级规则（熔断降级）
+
+RT、异常比例、异常数
+
+RT：平均响应时间，秒级。平均响应时间超出阈值且在时间窗口内通过的请求>=5，两个条件同时满足后触发降级
+
+​		窗口期后关闭断路器
+
+​		RT最大4900，更大通过参数设置
+
+异常比例：QPS大于等于5且异常比例（秒级）超过阈值，触发降级；时间窗口结束后，关闭降级。
+
+异常数：分钟级，异常数（分钟统计）超过阈值，触发降级；时间窗口期后，关闭降级（时间窗口期一定要大于60秒）
+
+进一步说明：Sentinel的熔断是没有半开状态的.
+
+### 热点Key（热点规则）
+
+根据传入参数进行限流。
+
+```java
+@GetMapping("/testHotKey")
+@SentinelResource(value = "testHotKey", blockHandler = "deal_testHotKey")
+public String testHotKey(@RequestParam(value = "p1'", required = false) String p1,
+                         @RequestParam(value = "p2'", required = false) String p2) {
+    return "test Hotkey";
+}
+
+public String deal_testHotKey(String p1, String p2, BlockException e) {
+    return "-------deal_testHotKey";
+}
+```
+
+必须配置兜底方法。
+
+### 参数例外项
+
+特例，当p1的值是5，访问阈值达到200。
+
+总结，@SentinelResource主管配置出错，运行出错该走异常还走异常
+
+### 系统规则（系统自适应限流）
+
+系统自适应限流是从整体维度对应用入口流量就行控制。
+
+### @SentinelResource
+
+@HystrixCommand。
+
+可自定义限流逻辑处理类。
+
+注解不支持private
+
+### 服务熔断
+
+fallBack管理运行时异常（兜底方法）
+
+blockHandler由sentinel监控
+
+exceptionsToIgnore = {IllegalArgumentException.class}  如果报该异常，不再有fallback方法兜底，没有降级效果
+
+### 整合OpenFeign
+
+### 规则持久化
+
+将限流规则持久化进Nacos保存，只要刷新8401某个rest地址，sentinel控制台的流控规则就能看到，只要nacos里面的配置不删除，针对8401上sentinel上的流控规则则持续有效。
+
+```yml
+server:
+  port: 8401
+spring:
+  application:
+    name: cloudalibaba-sentinel-service
+  cloud:
+    nacos:
+      discovery:
+        # nacos服务注册中心地址
+        server-addr: localhost:8848
+    sentinel:
+      transport:
+        # 配置dashboard地址
+        dashboard: localhost:8080
+        # 默认8710端口，假如被占用会自动从8719开始依次+1扫描，直至找到未被占用的端口
+        port: 8719
+      datasource: 
+        dsl:
+          nacos:
+            server-addr: locolhost:8848
+            dataId: cloudalibaba-sentinel-service
+            groupId: DEFAULT_GROUP
+            rule-type: flow
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+```
+
+nacos配置：
+
+```json
+{
+  "resources": "/rateLimit/byUrl",  资源名称
+  "limitApp": "default",						来源应用	
+  "grade": 1,												阈值类型，0表示线程数，1表示QPS
+  "count": 1,												单机阈值
+  "strategy": 0,										流控模式，0表示直接，1表示关联，2表示链路
+  "controlBehavior": 0,							流控效果，0表示快速失败，1表示Warm Up,2表示排队等待
+  "clusterMode": false							是否集群
+}
+```
+
+## Seata
+
+分布式事务解决方案。全局数据一致性的问题。
+
+分布式事务处理过程：
+
+- 分布式事务处理过程的一个ID+三组件模型
+  - id：全局事务id Translation ID XID
+  - 三组件概念
+    - Transaction Coordinator （TC） 事务协调器，维护全局事务和分支事务，驱动全局事务提交或回滚
+    - Transaction Manager（TM） 定义全局事务范围：开始全局事务、提交或回滚全局事务
+    - Resource Manager（RM） 控制分支事务，负责分支注册和报告分支事务状态，并驱动分支事务提交或回滚
+- 处理过程
+
+![image-20200903170943087](/Users/zoujidi/Library/Application Support/typora-user-images/image-20200903170943087.png)
